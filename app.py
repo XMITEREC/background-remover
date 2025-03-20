@@ -7,6 +7,8 @@ from werkzeug.utils import secure_filename
 from models import db, User, ImageHistory
 from bg_remover import BackgroundRemover
 import uuid
+import psutil
+import threading
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24).hex()
@@ -172,9 +174,25 @@ def create_user():
     })
 # app.py (continued)
 
+def log_memory_usage(tag=""):
+    """Log the current memory usage"""
+    process = psutil.Process(os.getpid())
+    mem_info = process.memory_info()
+    print(f"MEMORY [{tag}]: {mem_info.rss / 1024 / 1024:.2f} MB RSS")
+
+# Memory cleanup background task
+def delayed_memory_cleanup():
+    """Run delayed cleanup to free memory after request completes"""
+    time.sleep(2)  # Wait for response to be sent
+    import gc
+    gc.collect()
+    log_memory_usage("after gc")
+
 @app.route('/process', methods=['POST'])
 @login_required
 def process_image():
+    log_memory_usage("start")
+    
     # Check if user has tokens
     if current_user.tokens <= 0:
         return jsonify({
@@ -231,6 +249,9 @@ def process_image():
             processed_folder
         )
         
+        # Log memory after processing
+        log_memory_usage("after processing")
+        
         # Get relative paths for storage
         original_relative = os.path.relpath(upload_path, os.path.join(app.root_path, 'static'))
         processed_relative = os.path.relpath(processed_path, os.path.join(app.root_path, 'static'))
@@ -253,6 +274,11 @@ def process_image():
         # Print debugging info
         print(f"Original URL: {original_url}")
         print(f"Processed URL: {processed_url}")
+        
+        # Schedule background memory cleanup
+        cleanup_thread = threading.Thread(target=delayed_memory_cleanup)
+        cleanup_thread.daemon = True
+        cleanup_thread.start()
         
         return jsonify({
             'success': True,
