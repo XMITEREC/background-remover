@@ -1,0 +1,277 @@
+<!-- templates/admin.html -->
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - BackgroundAI{% endblock %}
+
+{% block content %}
+<div class="py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-6">Admin Dashboard</h1>
+        
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Create New User</h2>
+            <form id="create-user-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <label for="new-username" class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" id="new-username" name="username" required
+                        class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                </div>
+                <div>
+                    <label for="new-email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="new-email" name="email" required
+                        class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                </div>
+                <div>
+                    <label for="new-password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="new-password" name="password" required
+                        class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                </div>
+                <div>
+                    <label for="new-tokens" class="block text-sm font-medium text-gray-700">Tokens</label>
+                    <input type="number" id="new-tokens" name="tokens" min="0" value="10"
+                        class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                </div>
+                <div class="flex items-center mt-6">
+                    <input id="new-is-admin" name="is_admin" type="checkbox" 
+                        class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="new-is-admin" class="ml-2 block text-sm text-gray-900">
+                        Admin user
+                    </label>
+                </div>
+                <div class="md:col-span-2 lg:col-span-3 mt-4">
+                    <button type="submit" 
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Create User
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold">Manage Users</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                User
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Email
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Role
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Tokens
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table" class="bg-white divide-y divide-gray-200">
+                        {% for user in users %}
+                            <tr data-user-id="{{ user.id }}">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ user.username }}</div>
+                                    <div class="text-sm text-gray-500">Created: {{ user.created_at.strftime('%Y-%m-%d') }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ user.email }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if user.is_admin %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                                            Admin
+                                        </span>
+                                    {% else %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                            User
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="token-count">{{ user.tokens }}</span>
+                                    <div class="mt-2 flex space-x-2">
+                                        <button class="add-tokens" data-user-id="{{ user.id }}" data-amount="5"
+                                            class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded hover:bg-green-200">
+                                            +5
+                                        </button>
+                                        <button class="add-tokens" data-user-id="{{ user.id }}" data-amount="20"
+                                            class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded hover:bg-green-200">
+                                            +20
+                                        </button>
+                                        <button class="add-tokens" data-user-id="{{ user.id }}" data-amount="100"
+                                            class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded hover:bg-green-200">
+                                            +100
+                                        </button>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <button class="delete-user text-red-600 hover:text-red-900" data-user-id="{{ user.id }}">
+                                            <i class="fas fa-trash-alt"></i> Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Create user form submission
+        const createUserForm = document.getElementById('create-user-form');
+        if (createUserForm) {
+            createUserForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(createUserForm);
+                
+                fetch('/admin/create_user', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Add the new user to the table
+                        const usersTable = document.getElementById('users-table');
+                        const newRow = document.createElement('tr');
+                        newRow.dataset.userId = data.user.id;
+                        
+                        newRow.innerHTML = `
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">${data.user.username}</div>
+                                <div class="text-sm text-gray-500">Created: Just now</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                ${data.user.email}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                ${data.user.is_admin ? 
+                                    '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">Admin</span>' : 
+                                    '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">User</span>'}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="token-count">${data.user.tokens}</span>
+                                <div class="mt-2 flex space-x-2">
+                                    <button class="add-tokens px-2 py-1 bg-green-100 text-green-800 text-xs rounded hover:bg-green-200" 
+                                        data-user-id="${data.user.id}" data-amount="5">
+                                        +5
+                                    </button>
+                                    <button class="add-tokens px-2 py-1 bg-green-100 text-green-800 text-xs rounded hover:bg-green-200" 
+                                        data-user-id="${data.user.id}" data-amount="20">
+                                        +20
+                                    </button>
+                                    <button class="add-tokens px-2 py-1 bg-green-100 text-green-800 text-xs rounded hover:bg-green-200" 
+                                        data-user-id="${data.user.id}" data-amount="100">
+                                        +100
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <button class="delete-user text-red-600 hover:text-red-900" data-user-id="${data.user.id}">
+                                        <i class="fas fa-trash-alt"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        
+                        usersTable.insertBefore(newRow, usersTable.firstChild);
+                        
+                        // Clear the form
+                        createUserForm.reset();
+                        
+                        // Add event listeners to new buttons
+                        addEventListeners();
+                        
+                        alert('User created successfully!');
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while creating the user.');
+                });
+            });
+        }
+        
+        // Add tokens functionality
+        function addEventListeners() {
+            document.querySelectorAll('.add-tokens').forEach(button => {
+                button.addEventListener('click', function() {
+                    const userId = this.dataset.userId;
+                    const amount = parseInt(this.dataset.amount);
+                    
+                    const formData = new FormData();
+                    formData.append('user_id', userId);
+                    formData.append('tokens', amount);
+                    
+                    fetch('/admin/add_tokens', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update the token count
+                            const row = document.querySelector(`tr[data-user-id="${userId}"]`);
+                            const tokenCount = row.querySelector('.token-count');
+                            tokenCount.textContent = data.newTotal;
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while adding tokens.');
+                    });
+                });
+            });
+            
+            // Delete user functionality
+            document.querySelectorAll('.delete-user').forEach(button => {
+                button.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+                        const userId = this.dataset.userId;
+                        
+                        fetch(`/admin/delete_user/${userId}`, {
+                            method: 'POST'
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Remove the row from the table
+                                const row = document.querySelector(`tr[data-user-id="${userId}"]`);
+                                row.remove();
+                            } else {
+                                alert('Error: ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred while deleting the user.');
+                        });
+                    }
+                });
+            });
+        }
+        
+        // Initialize event listeners
+        addEventListeners();
+    });
+</script>
+{% endblock %}
